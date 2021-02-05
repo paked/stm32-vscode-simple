@@ -5,13 +5,31 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Cortex Debug",
+            "name": "Build & debug",
             "cwd": "${workspaceRoot}",
-            "executable": "./program.elf",
+            "executable": "program.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "stutil",
-            "device": "STM32L476VG"
+            "device": "STM32L476VG",
+            "preLaunchTask": "build",
+            "postLaunchCommands": [
+                "-break-insert main"
+            ]
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Build & debug (emulator)",
+            "cwd": "${workspaceRoot}",
+            "device": "STM32L476VG",
+            "executable": "program.elf",
+            "servertype": "qemu",
+            "preLaunchTask": "build",
+            "serverpath": "${env:HOME}/.comp2300/discoserver",
+            "postLaunchCommands": [
+                "-break-insert main"
+            ]
         }
     ]
 }

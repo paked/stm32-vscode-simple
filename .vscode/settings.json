@@ -1,4 +1,4 @@
 {
-    // "cortex-debug.armToolchainPath": "~/.comp2300/arm-none-eabi/bin",
+    "cortex-debug.armToolchainPath": "${env:HOME}/.comp2300/arm-none-eabi/bin",
     "cortex-debug.enableTelemetry": false,
 }
