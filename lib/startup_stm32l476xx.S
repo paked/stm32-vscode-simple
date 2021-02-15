@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file      startup_stm32l476xx.S
-  * @author    MCD Application Team
+  * @author    MCD Application Team, Harrison Shoebridge
   * @brief     STM32L476xx devices vector table GCC toolchain.
   *            This module performs:
   *                - Set the initial SP
@@ -12,6 +12,8 @@
   *                  calls main()).
   *            After Reset the Cortex-M4 processor is in Thread mode,
   *            priority is Privileged, and the Stack is set to Main.
+  *
+  *			   It has been slightly modified to _not_ do some of the things above.
   ******************************************************************************
   * @attention
   *
@@ -63,7 +65,7 @@ Reset_Handler:
   ldr   sp, =_estack    /* Set stack pointer */
 
 /* Call the clock system initialization function.*/
-@ TODO(harrison): fix add this call back in
+	@ NOTE(harrison): SystemInit is a function provided by the setup code from ST. It's usually responsible for setting up the clock (at 80Mhz, for example). We do this ourself in assembly when we need to.
     @ bl  SystemInit
 
 /* Copy the data segment initializers from flash to SRAM */
@@ -93,6 +95,8 @@ LoopFillZerobss:
 	ldr	r3, = _ebss
 	cmp	r2, r3
 	bcc	FillZerobss
+
+	@ NOTE(harrison): we don't link against a libc when compiling, so __libc_init_array does not exist. if you were to write C in this project, some things might not work as expected (https://stackoverflow.com/questions/15265295/understanding-the-libc-init-array).
 
 /* Call static constructors */
     @ bl __libc_init_array
