@@ -1,5 +1,5 @@
 {
     "cortex-debug.armToolchainPath": "${env:HOME}/.comp2300/arm-none-eabi/bin",
     "cortex-debug.enableTelemetry": false,
-    "cortex-debug.openocdPath": "${env:HOME}/.comp2300/openocd/bin/openocd"
+    "cortex-debug.openocdPath": "${env:HOME}/.comp2300/openocd/bin/openocd",
 }
