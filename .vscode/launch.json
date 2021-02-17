@@ -14,7 +14,7 @@
             "device": "STM32L476VG",
             "preLaunchTask": "build",
             "postLaunchCommands": [
-                "-break-insert main"
+                "-break-insert -t main"
             ],
             "configFiles": [
                 "interface/stlink.cfg",
@@ -34,7 +34,7 @@
             "preLaunchTask": "build",
             "serverpath": "${env:HOME}/.comp2300/discoserver",
             "postLaunchCommands": [
-                "-break-insert main"
+                "-break-insert -t main"
             ]
         }
     ]
