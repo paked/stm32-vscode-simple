@@ -6,10 +6,10 @@ CC=$(PREFIX)gcc
 LD=$(PREFIX)ld
 OBJCOPY=$(PREFIX)objcopy
 
-SRCS := $(shell find src lib -name *.c -or -name *.S)
+SRCS := $(shell find src lib -name '*.c' -or -name '*.S')
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 
-CFLAGS ?=-mcpu=cortex-m4 -mthumb -Wall -Werror -O0 -gdwarf-4 -g3
+CFLAGS ?=-nostdlib -nostartfiles -mcpu=cortex-m4 -mthumb -Wall -Werror -O0 -gdwarf-4 -g3
 LDFLAGS ?=-nostdlib -nostartfiles -T lib/link.ld
 
 TARGET ?= program.elf
