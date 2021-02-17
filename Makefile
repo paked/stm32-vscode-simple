@@ -12,7 +12,7 @@ LDFLAGS ?=-nostdlib -nostartfiles -T lib/link.ld
 
 TARGET ?= program.elf
 
-all: clean $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
