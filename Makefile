@@ -1,6 +1,6 @@
 COM2300_PATH ?= ~/.comp2300
 
-PREFIX=arm-none-eabi-
+PREFIX=~/.comp2300/arm-none-eabi/bin/arm-none-eabi-
 
 CC=$(PREFIX)gcc
 LD=$(PREFIX)ld

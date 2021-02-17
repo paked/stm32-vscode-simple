@@ -10,12 +10,18 @@
             "executable": "program.elf",
             "request": "launch",
             "type": "cortex-debug",
-            "servertype": "stutil",
+            "servertype": "openocd",
             "device": "STM32L476VG",
             "preLaunchTask": "build",
             "postLaunchCommands": [
                 "-break-insert main"
-            ]
+            ],
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32l4x.cfg"
+            ],
+            "svdFile": "lib/STM32L4x6.svd",
+            "runToMain": true
         },
         {
             "type": "cortex-debug",
