@@ -8,7 +8,7 @@ SRCS := $(shell find src lib -name '*.c' -or -name '*.S')
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 
 CFLAGS ?=-nostdlib -nostartfiles -mcpu=cortex-m4 -mthumb -Wall -Werror -g
-LDFLAGS ?=-nostdlib -nostartfiles -T lib/link.ld
+LDFLAGS ?=-nostdlib -nostartfiles -T lib/link.ld --print-memory-usage
 
 TARGET ?= program.elf
 
