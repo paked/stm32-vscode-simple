@@ -1,159 +1,75 @@
 /*
-*****************************************************************************
-**
+  Understanding this file is NOT part of the course at all. It is provided with comments
+  in case you are interested in what it is doing.
 
-**  File        : stm32_flash.ld
-**
-**  Abstract    : Linker script for STM32L476VG Device with
-**                1024KByte FLASH, 96KByte RAM
-**
-**                Set heap size, stack size and stack location according
-**                to application requirements.
-**
-**                Set memory bank area and size if external memory is used.
-**
-**  Target      : STMicroelectronics STM32
-**
-**  Environment : Atollic TrueSTUDIO(R)
-**
-**  Distribution: The file is distributed as is, without any warranty
-**                of any kind.
-**
-**  (c)Copyright Atollic AB.
-**  You may use this file as-is or modify it according to the needs of your
-**  project. This file may only be built (assembled or compiled and linked)
-**  using the Atollic TrueSTUDIO(R) product. The use of this file together
-**  with other tools than Atollic TrueSTUDIO(R) is not permitted.
-**
-*****************************************************************************
-*/
+  If you want to read more documentation on this file, see https://sourceware.org/binutils/docs/ld/Scripts.html#Scripts
+ */
 
-/* Entry Point */
+/*
+  Says to start execution at the "Reset_Handler" symbol (see startup.S).
+  Primarily used by debuggers: the board itself determines the entry point
+  from the value stored in memory address 0x0000_0004 (we make sure to
+  put the Reset_Handler address there).
+ */
 ENTRY(Reset_Handler)
 
-/* Highest address of the user mode stack */
-_estack = 0x20018000;    /* end of RAM */
-/* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
-
-/* Specify the memory areas */
-MEMORY
-{
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 96K
-RAM2 (xrw)      : ORIGIN = 0x10000000, LENGTH = 32K
-FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1024K
+/* Specifies the size and location of the memory areas */
+MEMORY {
+    RAM (rw)   : ORIGIN = 0x20000000, LENGTH = 96K
+    RAM2 (rw)  : ORIGIN = 0x10000000, LENGTH = 32K
+    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
 }
 
-/* Define output sections */
-SECTIONS
-{
-  /* The startup code goes first into FLASH */
-  .isr_vector :
-  {
-    . = ALIGN(4);
-    KEEP(*(.isr_vector)) /* Startup code */
-    . = ALIGN(4);
-  } >FLASH
+/*
+  Specifies the end of the main stack (see ARM reference manual B1.4.1) This variable is
+  used in startup.S to initalise the SP register. We set it to the end of the larger RAM section.
+ */
+_stack_end = ORIGIN(RAM) + LENGTH(RAM); /* 0x2001_8000 */
 
-  /* The program code and other data goes into FLASH */
-  .text :
-  {
-    . = ALIGN(4);
-    *(.text)           /* .text sections (code) */
-    *(.text*)          /* .text* sections (code) */
-    *(.glue_7)         /* glue arm to thumb code */
-    *(.glue_7t)        /* glue thumb to arm code */
-    *(.eh_frame)
+/* Amount of room that must be left unused for the stack to grow into */
+_min_stack_size = 0x400;
 
-    KEEP (*(.init))
-    KEEP (*(.fini))
+/*
+  Defines where the .section regions are placed. Take a look in
+  the memory view to see this in action; in particular, see that
+  the .data section is actually loaded into FLASH too.
+ */
+SECTIONS {
+    /*
+      This section is used for the vector table. We put it first so that it goes to the start of FLASH,
+      which is mapped to 0x0, which is where the vector table is expected to be by default.
+    */
+    .rodata.vtable : { *(.rodata.vtable) } > FLASH
 
-    . = ALIGN(4);
-    _etext = .;        /* define a global symbols at end of code */
-  } >FLASH
+    /* Next we insert all the .text sections */
+    .text : {
+        . = ALIGN(4);
+        _text_start = .;
+        *(.text)
+        _text_end = .;
+    } > FLASH
 
-  /* Constant data goes into FLASH */
-  .rodata :
-  {
-    . = ALIGN(4);
-    *(.rodata)         /* .rodata sections (constants, strings, etc.) */
-    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
-    . = ALIGN(4);
-  } >FLASH
+    /* Then we insert all the .data sections */
+    .data : {
+        . = ALIGN(4);
+        _data_start_ram = .;
+        KEEP(*(.data))
+        . = ALIGN(4); /* Round up the data section to a multiple of 4 bytes, to make the startup copy routine simpler */
+        _data_end_ram = .;
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
-  .ARM : {
-    __exidx_start = .;
-    *(.ARM.exidx*)
-    __exidx_end = .;
-  } >FLASH
+        /* Require that the stack has some room to grow */
+        /*
+          NOTE: Inside of a section entry like this, the current position starts at 0, not the start address of
+          the memory region. This is why we compare against LENGTH(RAM) instead of _stack_end.
+        */
+        ASSERT(_data_end_ram + _min_stack_size < LENGTH(RAM), "Error: Stack does not have enough room to grow");
+    } > RAM AT> FLASH
 
-  .preinit_array     :
-  {
-    PROVIDE_HIDDEN (__preinit_array_start = .);
-    KEEP (*(.preinit_array*))
-    PROVIDE_HIDDEN (__preinit_array_end = .);
-  } >FLASH
-  .init_array :
-  {
-    PROVIDE_HIDDEN (__init_array_start = .);
-    KEEP (*(SORT(.init_array.*)))
-    KEEP (*(.init_array*))
-    PROVIDE_HIDDEN (__init_array_end = .);
-  } >FLASH
-  .fini_array :
-  {
-    PROVIDE_HIDDEN (__fini_array_start = .);
-    KEEP (*(SORT(.fini_array.*)))
-    KEEP (*(.fini_array*))
-    PROVIDE_HIDDEN (__fini_array_end = .);
-  } >FLASH
-
-  /* used by the startup to initialize data */
-  _sidata = LOADADDR(.data);
-
-  /* Initialized data sections goes into RAM, load LMA copy after code */
-  .data : 
-  {
-    . = ALIGN(4);
-    _sdata = .;        /* create a global symbol at data start */
-    *(.data)           /* .data sections */
-    *(.data*)          /* .data* sections */
-
-    . = ALIGN(4);
-    _edata = .;        /* define a global symbol at data end */
-  } >RAM AT> FLASH
-
-  
-  /* Uninitialized data section */
-  . = ALIGN(4);
-  .bss :
-  {
-    /* This is used by the startup in order to initialize the .bss secion */
-    _sbss = .;         /* define a global symbol at bss start */
-    __bss_start__ = _sbss;
-    *(.bss)
-    *(.bss*)
-    *(COMMON)
-
-    . = ALIGN(4);
-    _ebss = .;         /* define a global symbol at bss end */
-    __bss_end__ = _ebss;
-  } >RAM
-
-  /* User_heap_stack section, used to check that there is enough RAM left */
-  ._user_heap_stack :
-  {
-    . = ALIGN(4);
-    PROVIDE ( end = . );
-    PROVIDE ( _end = . );
-    . = . + _Min_Heap_Size;
-    . = . + _Min_Stack_Size;
-    . = ALIGN(4);
-  } >RAM
-
-
-  .ARM.attributes 0 : { *(.ARM.attributes) }
+    /*
+      Defines the start of data in FLASH. This is where the data is actually stored when uploaded to the board.
+      (this is what `> RAM AT> FLASH` does: the section is marked as for RAM, but physically located in FLASH)
+      It is up to the running program to copy this data from FLASH into RAM.
+    */
+    _data_start_flash = LOADADDR(.data);
+    _data_end_flash = _data_start_flash + (_data_end_ram - _data_start_ram);
 }
-
