@@ -42,6 +42,15 @@
  * @pins B6, B7, E2-6
  */
 
+.global init
+.type init, %function
+init:
+    push {lr}
+    bl clock_init
+    bl audio_init
+    pop {pc}
+.size init, . - init
+
 .global audio_init
 .type audio_init, %function
 audio_init:
@@ -445,6 +454,12 @@ audio_play_sample:
 
     bx lr
 .size audio_play_sample, . - audio_play_sample
+
+.global BSP_AUDIO_OUT_Play_Sample
+.type BSP_AUDIO_OUT_Play_Sample, %function
+BSP_AUDIO_OUT_Play_Sample:
+    b audio_play_sample
+.size BSP_AUDIO_OUT_Play_Sample, . - BSP_AUDIO_OUT_Play_Sample
 
 
 /**
