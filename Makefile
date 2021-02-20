@@ -1,8 +1,12 @@
-PREFIX=$(shell echo ~/.comp2300)/arm-none-eabi/bin/arm-none-eabi-
+COMP2300=$(shell echo ~/.comp2300)
 
-CC=$(PREFIX)gcc
-LD=$(PREFIX)ld
-OBJCOPY=$(PREFIX)objcopy
+ARM_PREFIX=$(COMP2300)/arm-none-eabi/bin/arm-none-eabi-
+
+CC=$(ARM_PREFIX)gcc
+LD=$(ARM_PREFIX)ld
+OBJCOPY=$(ARM_PREFIX)objcopy
+
+OPENOCD=$(COMP2300)/openocd/bin/openocd
 
 SRCS := $(shell find src lib -name '*.c' -or -name '*.S')
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
@@ -23,9 +27,14 @@ $(TARGET): $(OBJS)
 %.o: %.S
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+.PHONY: upload
 upload: $(TARGET)
 	$(OBJCOPY) -O binary $(TARGET) program.bin
-	st-flash write program.bin 0x20000000
+
+	$(OPENOCD) -f board/stm32l4discovery.cfg -c "program program.elf verify reset exit"
+
+	# binary files need the flash address passing
+	$(OPENOCD) -f board/stm32l4discovery.cfg -c "program program.bin exit 0x08000000"
 
 clean:
 	rm $(TARGET) $(OBJS) >/dev/null 2>/dev/null || true
