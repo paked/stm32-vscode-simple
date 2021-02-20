@@ -33,8 +33,5 @@ upload: $(TARGET)
 
 	$(OPENOCD) -f board/stm32l4discovery.cfg -c "program program.elf verify reset exit"
 
-	# binary files need the flash address passing
-	$(OPENOCD) -f board/stm32l4discovery.cfg -c "program program.bin exit 0x08000000"
-
 clean:
 	rm $(TARGET) $(OBJS) >/dev/null 2>/dev/null || true
