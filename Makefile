@@ -1,4 +1,4 @@
-COMP2300=$(shell echo ~/.comp2300)
+COMP2300 ?= $(shell echo ~/.comp2300)
 
 ARM_PREFIX=$(COMP2300)/arm-none-eabi/bin/arm-none-eabi-
 

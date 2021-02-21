@@ -32,7 +32,7 @@
             "executable": "program.elf",
             "servertype": "qemu",
             "preLaunchTask": "build",
-            "serverpath": "${env:HOME}/.comp2300/discoserver",
+            "serverpath": ".comp2300/discoserver",
             "postLaunchCommands": [
                 "-break-insert -t main"
             ]
